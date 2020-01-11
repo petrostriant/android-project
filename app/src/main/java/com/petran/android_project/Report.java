@@ -16,6 +16,8 @@ public class Report {
         this.username = username;
     }
 
+
+
     public Report(String desc, String url, double latitude, double longtitude , String username , String id) {
         this.desc = desc;
         this.url = url;
@@ -25,6 +27,9 @@ public class Report {
         this.id=id;
     }
 
+    public Report(){
+
+    }
     public String getId() {
         return id;
     }

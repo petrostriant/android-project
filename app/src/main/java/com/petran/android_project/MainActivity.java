@@ -63,14 +63,14 @@ public class MainActivity extends AppCompatActivity {
     private EditText mEditTextFileName;
     private ImageView mImageView;
     private ProgressBar mProgressBar;
+    private String fileurl;
 
     private Uri mImageUri;
-   // ProgressDialog progressDialog;
+    // ProgressDialog progressDialog;
     FirebaseDatabase database;
     FirebaseStorage storage;
     DatabaseReference dbRef;
     StorageReference storageRef;
-
 
 
     @Override
@@ -86,9 +86,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
         database = FirebaseDatabase.getInstance();
-        dbRef = database.getReference("reports/");
+        dbRef = database.getReference("reports");
         storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReference("reports/");
+        storageRef = storage.getReference("reports");
         mButtonChooseImage = findViewById(R.id.button_choose_image);
         mButtonUpload = findViewById(R.id.button_upload);
         mTextViewShowUploads = findViewById(R.id.text_view_show_uploads);
@@ -119,17 +119,16 @@ public class MainActivity extends AppCompatActivity {
         mTextViewShowUploads.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                openImagesActivity();
             }
         });
-
 
 
     }
 
     public void getLastlocation() {
         fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener < Location > () {
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
@@ -140,55 +139,40 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
     public void UploadImageFileToFirebaseStorage() {
 
         if (mImageUri != null) {
 
             getLastlocation();
 
-            // Setting progressDialog Title.
-           // progressDialog.setTitle("Image is Uploading...");
+            final String id = mAuth.getUid() + System.currentTimeMillis();
 
-            // Showing progressDialog.
-          //  progressDialog.show();
+            final StorageReference storageReference2nd = storageRef.child(id);
 
-            // Creating second StorageReference.
-
-            final String id=mAuth.getUid()+System.currentTimeMillis();
-
-            StorageReference storageReference2nd = storageRef.child(id);
 
             // Adding addOnSuccessListener to second StorageReference.
             storageReference2nd.putFile(mImageUri)
-                    .addOnSuccessListener(new OnSuccessListener< UploadTask.TaskSnapshot >() {
+
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-
-                            // Hiding the progressDialog after done uploading.
-                           // progressDialog.dismiss();
-
-                            // Showing toast message after done uploading.
                             Toast.makeText(getApplicationContext(), "Image Uploaded Successfully ", Toast.LENGTH_LONG).show();
 
+                            storageReference2nd.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    String url = uri.toString();
+                                    Report imageUploadInfo = new Report(mEditTextFileName.getText().toString(), url, usrlocation.getLatitude(), usrlocation.getLongitude(), mAuth.getUid(), id);
+                                    DatabaseReference imageref = dbRef.child(id);
+                                    imageref.setValue(imageUploadInfo);
 
 
-                            @SuppressWarnings("VisibleForTests")
-                            Report imageUploadInfo = new Report(mEditTextFileName.getText().toString(), taskSnapshot.getStorage().getDownloadUrl().toString(), usrlocation.getLatitude(), usrlocation.getLongitude(),mAuth.getUid(),id);
-
-                            // Getting image upload ID.
-                            // String ImageUploadId = databaseReference.push().getKey();
-
-
-
-                            DatabaseReference imageref = dbRef.child(id);
-                            imageref.setValue(imageUploadInfo);
+                                }
+                            });
 
                         }
-
-
-
-
                     })
                     // If something goes wrong .
                     .addOnFailureListener(new OnFailureListener() {
@@ -196,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onFailure(@NonNull Exception exception) {
 
                             // Hiding the progressDialog.
-                           // progressDialog.dismiss();
+                            // progressDialog.dismiss();
 
                             // Showing exception erro message.
                             Toast.makeText(MainActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
@@ -204,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                     })
 
                     // On progress change upload time.
-                    .addOnProgressListener(new OnProgressListener< UploadTask.TaskSnapshot >() {
+                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
 //progrressdialog
@@ -231,11 +215,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onPermissionsChecked(MultiplePermissionsReport report) {
                         // check if all permissions are granted
                         if (report.areAllPermissionsGranted()) {
-                          getLastlocation();
+                            getLastlocation();
 
 
-                            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.CAMERA) !=PackageManager.PERMISSION_GRANTED){
-                               getLastlocation();
+                            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                                getLastlocation();
 
                                 return;
                             }
@@ -282,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
 
     }
+
     private void openSettings() {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         Uri uri = Uri.fromParts("package", getPackageName(), null);
@@ -290,12 +275,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     @Override
     public void onStart() {
         super.onStart();
         currentUser = mAuth.getCurrentUser();
     }
+
     @Override
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -325,5 +310,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void openImagesActivity() {
+        Intent intent = new Intent(MainActivity.this, ImagesActivity.class);
+        startActivity(intent);
+    }
 
 }
