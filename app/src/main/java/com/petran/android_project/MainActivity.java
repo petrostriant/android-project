@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
+    private TextView mapbutton;
     private Button mButtonChooseImage;
     private Button mButtonUpload;
     private TextView mTextViewShowUploads;
@@ -94,8 +95,19 @@ public class MainActivity extends AppCompatActivity {
         mTextViewShowUploads = findViewById(R.id.text_view_show_uploads);
         mEditTextFileName = findViewById(R.id.edit_text_file_name);
         mImageView = findViewById(R.id.image_view);
+        mapbutton = findViewById(R.id.openmaps);
         mProgressBar = findViewById(R.id.progress_bar);
         requestPermissions();
+
+
+        mapbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this,MapsActivity.class);
+                startActivity(intent);
+            }
+        });
+
         mButtonChooseImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
