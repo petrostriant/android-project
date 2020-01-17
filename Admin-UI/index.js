@@ -104,7 +104,13 @@ function userClicked(e) {
         $p.innerHTML = report;
          userDetailUI.append($p);
          userDetailUI.append($img);
+
+
     });
+
+
+	
+  
     
 }
 
@@ -117,15 +123,6 @@ firebase.auth().onAuthStateChanged(function(user) {
   
       var user = firebase.auth().currentUser;
       window.location.replace("main.html");
-
-
-  
-      if(user != null){
-  
-        var email_id = user.email;
-        document.getElementById("user_para").innerHTML = "Welcome User : " + email_id;
-  
-      }
   
     } else {
       // No user is signed in.
